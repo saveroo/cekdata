@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Periksa Data</title>
+    <script src="https://unpkg.com/vue@next"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.14.0/js/all.js"></script>
+</head>
+<body>
+    <section class="section">
+        <div id="main" class="container">
+
+            <!-- Main Forms -->
+            <h1 class="title">Cek Data Breach</h1>
+            <div class="field is-grouped">
+                <div class="control has-icons-left">
+                    <input 
+                    class="input is-info" 
+                    v-model="userInput" 
+                    aria-label="Email address" 
+                    name="email" 
+                    type="email" 
+                    required 
+                    placeholder="Email address"
+                    />
+                    <span class="icon is-small is-left">
+                        <i class="fas fa-envelope"></i>
+                    </span>
+                </div>
+                <div class="control">
+                    <button class="button is-primary" @click="fetchBreached(userInput)">Cek Data</button>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div v-if="this.apiData !== undefined" >
+                <div>
+                   Email {{ submittedInput }} terdaftar dalam {{ apiData.Breaches.length }} Data Leaks
+                </div>
+
+                <!-- Looped Results -->
+                <div class="card m-5" v-for="(breach, breachId) in displayedData" :key="breachId">               
+                    <div class="card-content">
+                        <div class="media">
+                        <div class="media-left">
+                            <figure class="image is-48x48">
+                            <img :src="breach.LogoPath" alt="breach.Name">
+                            </figure>
+                        </div>
+                        <div class="media-content">
+                            <p class="title is-4">{{breach.Title}}</p>
+                            <p class="subtitle is-6">{{breach.Domain}}</p>
+                        </div>
+                        </div>
+                    
+                        <div class="content" v-html="breach.Description">
+                        </div>
+                        <span>
+                        Waktu peretasan: <time>{{breach.BreachDate}}</time>
+                        </span>   
+                        <div> 
+                            <div class="tags">
+                                <span class="tag is-info">
+                                    Leaked Information:
+                                </span>
+                                <span v-for="dataClass in breach.DataClasses" class="tag is-light">{{dataClass}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button @click="showMore()" class="button is-info">Load More</button>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
+<script>
+    const MainApps = {
+        data() {
+            return {
+                userInput: "test@gmail.com",
+                submittedInput: undefined,
+                displayedData: null,
+                chunkedData: undefined,
+                apiData: undefined,
+                results: undefined,
+            }
+        },
+        methods: {
+            showMore() {
+                if(this.displayedData == null) {
+                    this.displayedData = []
+                } else {
+                    this.displayedData.push(this.chunkedData[0])
+                    this.chunkedData.shift();
+                    this.displayedData = this.displayedData.reduce((a,b) => a.concat(b), [])
+                }
+            },
+            async fetchBreached(email) {
+                let self = this;
+                self.submittedInput = email;
+                self.apiData = await fetch(`/api?email=${email}`)
+                .then(res => res.json())
+
+                // https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore#_chunk
+                const chunk = (input, size) => {
+                    return input.reduce((arr, item, idx) => {
+                        return idx % size === 0
+                        ? [...arr, [item]]
+                        : [...arr.slice(0, -1), [...arr.slice(-1)[0], item]];
+                    }, []);
+                };
+
+                let dataLength = self.apiData.Breaches.length;
+                if(dataLength > 10) {
+                    self.chunkedData = chunk(self.apiData.Breaches, 2)
+                }
+                console.log(self.chunkedData);
+            }
+        }
+    }
+    // Mounting EVERY FUCKING THING
+    Vue.createApp(MainApps).mount('#main');
+</script>
