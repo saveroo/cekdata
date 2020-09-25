@@ -7,5 +7,5 @@ app.get('/api', API)
 app.get('/', express.static("./"))
 
 app.listen(port, () => {
-  console.log(`Started at port: ${port}`)
+  console.log(`Started at port: ${port}.`)
 })
