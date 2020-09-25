@@ -1,26 +1,32 @@
-﻿const chromium = require('chrome-aws-lambda');
-const { addExtra } = require('puppeteer-extra');
+﻿// const chromium = require('chrome-aws-lambda');
+// const { addExtra } = require('puppeteer-extra');
+const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
-const puppeteer = addExtra(chromium.puppeteer)
+// const puppeteer = addExtra(chromium.puppeteer)
 
 puppeteer.use(StealthPlugin())
 
 module.exports = async function hibp(email) {
     const sources = `https://haveibeenpwned.com/unifiedsearch/${email}`;
 
-    let args = chromium.args;
-    let executablePath = await chromium.executablePath;
-    let defaultViewport = chromium.defaultViewport;
-    let headless = chromium.headless;
+    // let args = chromium.args;
+    // let executablePath = await chromium.executablePath;
+    // let defaultViewport = chromium.defaultViewport;
+    // let headless = chromium.headless;
+    // let args = chromium.args;
+    // let executablePath = await chromium.executablePath;
+    // let defaultViewport = chromium.defaultViewport;
+    // let headless = chromium.headless;
 
     // https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md#running-puppeteer-on-heroku
-    args.push('--no-sandbox');
+    // args.push('--no-sandbox');
 
     const browser = await puppeteer.launch({
-        args,
-        defaultViewport,
-        executablePath,
-        headless,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        headless: true,
+        // defaultViewport,
+        // executablePath,
+        // headless,
     });
     const page = await browser.newPage();
     return await page.goto(sources, {
@@ -29,6 +35,8 @@ module.exports = async function hibp(email) {
         return res.json()
     }).then(data => {
         return data;
+    }).catch(err => {
+        console.log("Error:", err);
     }).finally(() => {
         browser.close();
     })
