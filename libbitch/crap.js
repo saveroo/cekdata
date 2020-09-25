@@ -13,6 +13,9 @@ module.exports = async function hibp(email) {
     let defaultViewport = chromium.defaultViewport;
     let headless = chromium.headless;
 
+    // https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md#running-puppeteer-on-heroku
+    args.push('--no-sandbox');
+
     const browser = await puppeteer.launch({
         args,
         defaultViewport,
