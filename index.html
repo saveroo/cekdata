@@ -11,7 +11,7 @@
     <meta property="og:description" content="Serupa HIBP/PeriksaData nya mas @secgron, tapi tak sama." />
     <meta property="og:image" content="https://cekdata.herokuapp.com/assets/trolldad.png" />
     <title>Periksa Data</title>
-    <script src="https://unpkg.com/vue@next"></script>
+    <script src="https://unpkg.com/vue@3.0.0/dist/vue.global.prod.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css">
     <script defer src="https://use.fontawesome.com/releases/v5.14.0/js/all.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
@@ -24,21 +24,57 @@
         .card:hover {
           transform: translate3D(0,-1px,0) scale(1.03);
         }
+        /* .trolldad {
+            position: relative;
+            background: #696969;
+            overflow: hidden;
+        } */
+        .trolldad:before {
+            content: ' ';
+            display: block;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 80%;
+            height: 80%;
+            z-index: 0;
+            opacity: 0.5;
+            margin: 3px;
+            background-image: url('assets/trolldad.png');
+            background-repeat: no-repeat;
+            background-position: 0 0;
+            -ms-background-size: cover;
+            -o-background-size: cover;
+            -moz-background-size: cover;
+            -webkit-background-size: cover;
+            background-size: cover;
+        }
+        .trolldad i {
+            padding: 10px;
+            text-align: center;
+            z-index: 2;
+            position: relative;
+            color: #000;
+        }
     </style>
 </head>
 <body>
     <div id="main">
-
         <!-- Top Section -->
-        <section class="hero is-light">
+        <section :class="`hero ${backgroundColor}`">
             <div class="hero-body">
                 <div class="container">
                     <div class="columns is-centered">
                         <div class="column is-half">
                             <!-- Main Forms -->
-                            <h1 class="title is-1 is-family-monospace has-text-centered">Cek Data Breach</h1>
-                            <h2 class="subtitle is-spaced is-family-monospace has-text-centered">Keyless HIBP API Implementation</h2>
-                            <div class="control has-icons-left">
+                            <h1 class="title is-1 is-family-monospace has-text-centered" style="font-variant: small-caps">Cek Data Breach</h1>
+                            <h2 class="subtitle is-6 is-spaced is-family-monospace has-text-centered">
+                                A Keyless 
+                                <span>
+                                    <a href="https://ouo.io/aqncLQa" class="has-text-weight-semibold is-link">HIBP</a>
+                                </span> 
+                                API Implementation</h2>
+                            <div class="control has-icons-left has-icons-right">
                                 <input 
                                 class="input is-info is-fullwidth" 
                                 v-model="userInput" 
@@ -51,6 +87,9 @@
                                 <span class="icon is-small is-left">
                                     <i class="fas fa-envelope"></i>
                                 </span>
+                                <span class="icon is-small is-right">
+                                    <i class="trolldad"></i>
+                                </span>
                             </div>
                             <div class="control">
                                 <button class="button mt-2 is-primary is-fullwidth" @click="fetchBreached(userInput)">Check</button>
@@ -62,20 +101,17 @@
                 <!-- Socials -->
                 <div class="container">
                     <div class="columns is-mobile is-centered has-text-centered">
-                        <div class="column ">
+                        <div class="column">
                             <div>
-                                <a href="https://github.com/saveroo/cekdata" class="button mx-1 is-small is-github">
-                                    <span class="icon">
-                                      <i class="fab fa-github"></i>
-                                    </span>
-                                    <span>Source Code</span>
-                                </a>
-                                <a href="https://twitter.com/surgasavero" class="button mx-1 is-small is-twitter">
-                                    <span class="icon">
-                                      <i class="fab fa-twitter"></i>
-                                    </span>
-                                    <span>Author Twitter</span>
-                                </a>
+                                <social-icon id="test" url="https://github.com/saveroo/cekdata" 
+                                class-icon="fab fa-github" added-class="is-github" text="Source Code">
+                                </social-icon>
+                                <social-icon url="https://twitter.com/surgasavero" 
+                                class-icon="fab fa-twitter" added-class="is-twitter" text="Author Twitter">
+                                </social-icon>
+                                <social-icon url="https://saveroo27.netlify.app" 
+                                class-icon="fas fa-laptop-house" added-class="is-light" text="Personal Site">
+                                </social-icon>
                             </div>
                         </div>
                     </div>
@@ -172,6 +208,28 @@
 </body>
 </html>
 <script>
+    const SocialIcon = {
+        name: "SocialIcon",
+        props: {
+            url: String,
+            classIcon: String,
+            addedClass: String,
+            text: String,
+        },
+        setup(props) {
+            return {
+                props
+            };
+        },
+        template: `
+            <a :id="props.classIcon" :href="props.url" :class="'button mx-1 is-small mt-2 ' + props.addedClass">
+                <span class="icon">
+                    <i :class="props.classIcon"></i>
+                </span>
+                <span>{{props.text}}</span>
+            </a>
+        `,
+    }
 
     // Dependencies
     const { 
@@ -201,6 +259,7 @@
             results: undefined,
             isLoading: false,
             isBreached: false,
+            backgroundColor: '',
         }
     }
     
@@ -208,6 +267,7 @@
     const MainApps = {
         setup() {
             // Scroll Events
+            onMounted(() => backgroundColorRandomizer())
             onMounted(() => window.addEventListener("scroll", scrollInvoker))
             onUnmounted(() => window.removeEventListener("scroll", scrollInvoker))
 
@@ -259,6 +319,7 @@
 
                 let dataLength = state.apiData.length;
                 
+                backgroundColorRandomizer()
                 
                 // if(dataLength > 10)
                     // state.chunkedData = chunk(jsonData.Breaches, 1)
@@ -293,18 +354,37 @@
                 }
             }
 
+            const backgroundColorRandomizer = () => {
+                const colors = [
+                    '',
+                    'is-dark',
+                    'is-light',
+                    'is-info',
+                    'is-link',
+                    'is-success',
+                    'is-warning',
+                    'is-danger',
+                    'is-black',
+                ]
+                let id = Math.floor(Math.random() * colors.length)
+                state.backgroundColor = colors[id];
+                return state.backgroundColor;
+            }
+
             //#endregion function
             
             return { 
                 ...toRefs(state),
                 scrollInvoker,
                 showMore,
-                fetchBreached 
+                fetchBreached,
+                backgroundColorRandomizer
             }
         }
     }
 
     // Mounting EVERY FUCKING THING
-    createApp(MainApps)
-    .mount('#main');
+    let app = createApp(MainApps)
+    app.component("social-icon", SocialIcon);
+    app.mount("#main")
 </script>
