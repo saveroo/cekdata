@@ -296,9 +296,16 @@
                 // Fetching
                 let jsonData;
                 try {
-                    jsonData = await fetch(`/api?email=${email}`)
-                    .then(res => res.json())
-                    .finally(() => state.isLoading = false)
+                    jsonData = await fetch(`/api`, { 
+                            method: 'post', 
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({email})
+                        })
+                        .then(res => res.json())
+                        .finally(() => state.isLoading = false)
                     state.apiData = jsonData.Breaches;
                     state.isBreached = (state.apiData.length > 0);
                 } catch(err) {
