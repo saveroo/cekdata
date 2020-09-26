@@ -134,7 +134,7 @@
             </transition>
         </section>
 
-        <analyze-domain-modal :data="domainData" :is-active="domainModal" :toggler="() => { domainModal = !domainModal }" ></analyze-domain-modal>
+        <analyze-domain-modal :data="domainData" :is-active="domainModal" :toggler="() => { domainModal = !domainModal; domainSelected = null;  }" ></analyze-domain-modal>
 
 
         <!-- Results Section -->
@@ -180,9 +180,14 @@
                                                 <p class="title is-4">{{breach.Title}}</p>
                                                 <p class="subtitle is-6"><a :href="breach.Domain">{{breach.Domain}}</a></p>
                                             </div>
-                                            <div v-if="breach.Domain.length > 3 " class="media-right">
-                                                <button @click="fetchWappalyzer(breach.Domain)" class="button is-small is-link">
-                                                    Analyze Website Tech Stack
+                                            <div v-if="breach.Domain.length > 3" class="media-right">
+                                                <button @click="fetchWappalyzer(breach.Domain); domainSelected = breach.Domain" class="button is-small is-link">
+                                                    <span v-if="domainSelected !== null">
+                                                        Analyzing
+                                                    </span>
+                                                    <span v-else>
+                                                        Analyze Website Tech Stack
+                                                    </span>
                                                 </button>
                                             </div>
                                             </div>
@@ -324,6 +329,7 @@
             backgroundColor: '',
             domainData: null,
             domainModal: false,
+            domainSelected: null,
             domain: null,
             opts: {
                 description: true,
@@ -448,23 +454,25 @@
 
             // WappaLyzer
             async function fetchWappalyzer(domain) {
-                let jsonData;
-                try {
-                    jsonData = await fetch(`/api`, { 
-                            method: 'post', 
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({cmd: "domain", domain})
-                        })
-                        .then(res => res.json())
-                        .finally(() => state.isLoading = false)
-                        state.domainModal = true;
-                        state.domainData = jsonData
-                } catch(err) {
-                    console.log(":)")
-                }
+                if(state.domainSelected == null) {
+                    let jsonData;
+                    try {
+                        jsonData = await fetch(`/api`, { 
+                                method: 'post', 
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({cmd: "domain", domain})
+                            })
+                            .then(res => res.json())
+                            .finally(() => state.isLoading = false)
+                            state.domainModal = true;
+                            state.domainData = jsonData
+                    } catch(err) {
+                        console.log(":)")
+                    }
+                } 
             }
 
             //#endregion function
