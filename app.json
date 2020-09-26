@@ -1,0 +1,7 @@
+﻿{
+    "name": "CekData",
+    "description": "A Keyless HIBP API Demo utilizing Headless Chromium",
+    "repository": "https://github.com/saveroo/cekdata",
+    "logo": "https://github.com/saveroo/cekdata/assets/trolldad.png",
+    "keywords": ["node", "express", "static", "hibp", "security", "API", "headless", "email", "checker"]
+}
