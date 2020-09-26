@@ -11,7 +11,7 @@
     <meta property="og:description" content="Serupa HIBP/PeriksaData nya mas @secgron, tapi tak sama." />
     <meta property="og:image" content="https://cekdata.herokuapp.com/assets/trolldad.png" />
     <title>Periksa Data</title>
-    <script src="https://unpkg.com/vue@3.0.0/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/vue@3.0.0/dist/vue.global.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css">
     <script defer src="https://use.fontawesome.com/releases/v5.14.0/js/all.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
@@ -93,7 +93,12 @@
                             </div>
                             <div class="control">
                                 <button class="button mt-2 is-primary is-fullwidth" @click="fetchBreached(userInput)">Check</button>
+                                <label class="checkbox">
+                                    <input checked="opts.description" @click="opts.description = !opts.description" type="checkbox">
+                                    Show Description?
+                                </label>
                             </div>
+                            
                         </div>
                     </div>
                 </div>
@@ -129,6 +134,9 @@
             </transition>
         </section>
 
+        <analyze-domain-modal :data="domainData" :is-active="domainModal" :toggler="() => { domainModal = !domainModal }" ></analyze-domain-modal>
+
+
         <!-- Results Section -->
         <section ref="scrolledElement" class="hero is-red">
             <div class="hero-body py-0 px-0">
@@ -156,7 +164,7 @@
                                         </article>
                                     </div>
                                 </teleport>
-                    
+                
                                 <!-- Looped Results -->
                                 <div class="animate__animated animate__fadeIn card mt-5 mb-5 mr-0 ml-0" 
                                 v-for="(breach, breachId) in apiData" 
@@ -172,9 +180,15 @@
                                                 <p class="title is-4">{{breach.Title}}</p>
                                                 <p class="subtitle is-6"><a :href="breach.Domain">{{breach.Domain}}</a></p>
                                             </div>
+                                            <div v-if="breach.Domain.length > 3 " class="media-right">
+                                                <button @click="fetchWappalyzer(breach.Domain)" class="button is-small is-link">
+                                                    Analyze Website Tech Stack
+                                                </button>
                                             </div>
+                                            </div>
+
                                         
-                                            <div class="content" v-html="breach.Description">
+                                            <div v-if="opts.description" class="content" v-html="breach.Description">
                                             </div>
                                             <div>
                                                 <div class="tags my-1">
@@ -207,7 +221,8 @@
     </div>
 </body>
 </html>
-<script>
+<script type="module">
+
     const SocialIcon = {
         name: "SocialIcon",
         props: {
@@ -231,6 +246,51 @@
         `,
     }
 
+    const AnalyzeDomainModal = {
+        name: "AnalyzeDomainModal",
+        props: {
+            data: Object,
+            isActive: {
+                type: Boolean,
+                default: false
+            },
+            toggler: {
+                type: Function,
+                default: () => {}
+            }
+        },
+        setup(props) {
+            return {
+                props
+            }
+        },
+        template: `
+        <div v-if="props.data" :class="props.isActive ? 'modal is-active' : 'modal'">
+            <div class="modal-background"></div>
+            <div class="modal-card">
+                <header class="modal-card-head">
+                <p class="modal-card-title">Tech Stack</p>
+                <button @click="props.toggler()" class="delete" aria-label="close"></button>
+                </header>
+                <section class="modal-card-body">
+                    <div v-for="tech in props.data.technologies">
+                        <section class="my-2">
+                            <div class="container">
+                                Name: <span class="has-text-weight-semibold">{{tech.name}}</span> ({{tech.confidence}}%) <br>
+                                Website: <a :href="tech.website">{{tech.website}}</a> <br>
+                                Categories : {{tech.categories[0].name}} <br>
+                            </div>
+                        </section>
+                    </div>
+                </section>
+                <footer class="modal-card-foot">
+                <button @click="props.toggler()" class="button is-success">Save changes</button>
+                </footer>
+            </div>
+        </div>
+        `
+    }
+
     // Dependencies
     const { 
         createApp, 
@@ -238,6 +298,8 @@
         reactive, 
         toRefs, 
         onMounted, 
+        computed,
+        watchEffect,
         onUnmounted 
     } = Vue;
 
@@ -251,7 +313,7 @@
             loadProgress: 0,
             scrolledElement: null,
             loadMore: true,
-            userInput: "test@gmail.com",
+            userInput: "sasa@gmail.com",
             submittedInput: undefined,
             displayedData: [],
             chunkedData: [],
@@ -260,6 +322,12 @@
             isLoading: false,
             isBreached: false,
             backgroundColor: '',
+            domainData: null,
+            domainModal: false,
+            domain: null,
+            opts: {
+                description: true,
+            }
         }
     }
     
@@ -302,7 +370,7 @@
                                 'Accept': 'application/json',
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify({email})
+                            body: JSON.stringify({cmd: "email", email})
                         })
                         .then(res => res.json())
                         .finally(() => state.isLoading = false)
@@ -378,6 +446,27 @@
                 return state.backgroundColor;
             }
 
+            // WappaLyzer
+            async function fetchWappalyzer(domain) {
+                let jsonData;
+                try {
+                    jsonData = await fetch(`/api`, { 
+                            method: 'post', 
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({cmd: "domain", domain})
+                        })
+                        .then(res => res.json())
+                        .finally(() => state.isLoading = false)
+                        state.domainModal = true;
+                        state.domainData = jsonData
+                } catch(err) {
+                    console.log(":)")
+                }
+            }
+
             //#endregion function
             
             return { 
@@ -385,7 +474,8 @@
                 scrollInvoker,
                 showMore,
                 fetchBreached,
-                backgroundColorRandomizer
+                backgroundColorRandomizer,
+                fetchWappalyzer
             }
         }
     }
@@ -393,5 +483,6 @@
     // Mounting EVERY FUCKING THING
     let app = createApp(MainApps)
     app.component("social-icon", SocialIcon);
+    app.component("analyze-domain-modal", AnalyzeDomainModal);
     app.mount("#main")
 </script>
