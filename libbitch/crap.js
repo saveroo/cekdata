@@ -1,6 +1,5 @@
 ﻿const chromium = require('chrome-aws-lambda');
 const { addExtra } = require('puppeteer-extra');
-// const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 const puppeteer = addExtra(chromium.puppeteer)
 
@@ -13,12 +12,7 @@ module.exports = async function hibp(email) {
     let executablePath = await chromium.executablePath;
     let defaultViewport = chromium.defaultViewport;
     let headless = true;
-    // let args = chromium.args;
-    // let executablePath = await chromium.executablePath;
-    // let defaultViewport = chromium.defaultViewport;
-    // let headless = chromium.headless;
 
-    // https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md#running-puppeteer-on-heroku
     if(!args.includes('--no-sandbox')) 
         args.push('--no-sandbox');
     if(!args.includes('--disable-setuid-sandbox')) 
