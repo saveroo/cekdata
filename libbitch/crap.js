@@ -17,9 +17,6 @@ module.exports = async function hibp(email) {
         args.push('--no-sandbox');
     if(!args.includes('--disable-setuid-sandbox')) 
         args.push('--disable-setuid-sandbox');
-    
-        console.log(args);
-        console.log(executablePath);
 
     const browser = await puppeteer.launch({
         args,
